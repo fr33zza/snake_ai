@@ -48,6 +48,10 @@ class SnakeGame:
         2 = skręt w prawo
         """
         self.frame_iteration += 1
+        if self.frame_iteration > 100 * len(self.snake):
+            reward = -10
+            done = True
+            return self._get_state(), reward, done, self.score
         self._move(action)
         self.snake.appendleft(self.head)
 
@@ -114,13 +118,47 @@ class SnakeGame:
         self.head = Point(x, y)
 
     def _get_state(self):
-        """
-        Na razie zwracamy minimalny placeholder.
-        Docelowo tu będzie stan pod AI.
-        """
-        return {
-            "head": self.head,
-            "food": self.food,
-            "direction": self.direction,
-            "snake": list(self.snake)
-        }
+        head = self.head
+        point_l = Point(head.x - 1, head.y)
+        point_r = Point(head.x + 1, head.y)
+        point_u = Point(head.x, head.y - 1)
+        point_d = Point(head.x, head.y + 1)
+
+        dir_l = self.direction == Direction.LEFT
+        dir_r = self.direction == Direction.RIGHT
+        dir_u = self.direction == Direction.UP
+        dir_d = self.direction == Direction.DOWN
+
+        state = [
+            # danger straight
+            (dir_r and self._is_collision(point_r)) or
+            (dir_l and self._is_collision(point_l)) or
+            (dir_u and self._is_collision(point_u)) or
+            (dir_d and self._is_collision(point_d)),
+
+            # danger right
+            (dir_u and self._is_collision(point_r)) or
+            (dir_d and self._is_collision(point_l)) or
+            (dir_l and self._is_collision(point_u)) or
+            (dir_r and self._is_collision(point_d)),
+
+            # danger left
+            (dir_d and self._is_collision(point_r)) or
+            (dir_u and self._is_collision(point_l)) or
+            (dir_r and self._is_collision(point_u)) or
+            (dir_l and self._is_collision(point_d)),
+
+            # move direction
+            dir_l,
+            dir_r,
+            dir_u,
+            dir_d,
+
+            # food location
+            self.food.x < head.x,
+            self.food.x > head.x,
+            self.food.y < head.y,
+            self.food.y > head.y
+        ]
+
+        return [int(x) for x in state]

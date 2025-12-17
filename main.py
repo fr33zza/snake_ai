@@ -1,14 +1,15 @@
-from game.snake_game import SnakeGame
 import random
+from game.snake_game import SnakeGame
 
-game = SnakeGame()
+if __name__ == "__main__":
+    game = SnakeGame()
 
-state = game.reset()
-done = False
+    state = game.reset()
+    print(state)  # powinno wypisać 11 liczb (0/1)
 
-while not done:
-    action = random.randint(0, 2)
-    state, reward, done, score = game.step(action)
-    print(f"Head: {state['head']} | Food: {state['food']} | Score: {score}")
-
-print("Game over")
+    for _ in range(10):
+        s, r, d, score = game.step(random.randint(0, 2))
+        print(s, r)
+        if d:
+            print("GAME OVER")
+            break
